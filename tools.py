@@ -38,15 +38,22 @@ def _keywords(text: str) -> set[str]:
     return {w for w in words if w not in _STOPWORDS and len(w) > 1}
 
 def _size_tokens(size: str) -> set[str]:
-    cleaned = re.sub(r"\([^)]*\)", " ", size or "") # drop parentheticals
-    parts = [p.strip().upper for p in cleaned.split("/")]
-    return {p for p in parts if p}
+    cleaned = re.sub(r"\([^)]*\)", " ", size or "").upper()
+    tokens = set(re.findall(r"\b(?:XXS|XXL|XS|XL|S|M|L)\b", cleaned))
+    tokens.update(re.findall(r"\b(?:W|L)\d+\b", cleaned))
+    tokens.update(re.findall(r"\bUS\s*\d+(?:\.\d+)?\b", cleaned))
+    if "ONE SIZE" in cleaned:
+        tokens.add("ONE SIZE")
+    return tokens
 
-def _size_matches(wanted: str, listing_size: str) -> bool:
+
+def _size_matches(wanted: str | None, listing_size: str | None) -> bool:
     if not wanted:
         return True
+    if not listing_size:
+        return False
     listing_tokens = _size_tokens(listing_size)
-    if any(token.startswith("ONE SIZE") for token in listing_tokens):
+    if "ONE SIZE" in listing_tokens:
         return True
     return bool(_size_tokens(wanted) & listing_tokens)
 
@@ -101,8 +108,36 @@ def search_listings(
     Test it from a terminal before you move on:
         python -c "from tools import search_listings; print(search_listings('graphic tee', max_price=30))"
     """
-    # TODO: replace this with your implementation
-    return []
+    query_keywords = _keywords(description)
+    if not query_keywords:
+        return []
+
+    matches = []
+    for index, listing in enumerate(load_listings()):
+        if max_price is not None and listing["price"] > max_price:
+            continue
+        if not _size_matches(size, listing.get("size")):
+            continue
+
+        searchable_text = " ".join(
+            [
+                listing.get("title", ""),
+                listing.get("description", ""),
+                listing.get("category", ""),
+                " ".join(listing.get("style_tags", [])),
+                " ".join(listing.get("colors", [])),
+                listing.get("brand") or "",
+            ]
+        )
+        score = len(query_keywords & _keywords(searchable_text))
+        if score:
+            matches.append((score, index, listing))
+
+    matches.sort(key=lambda match: (-match[0], match[1]))
+    return [
+        listing
+        for _, _, listing in matches[: config.SEARCH_RESULT_LIMIT]
+    ]
 
 
 # ── Tool 2: suggest_outfit ────────────────────────────────────────────────────
@@ -125,18 +160,44 @@ def suggest_outfit(new_item: dict, wardrobe: dict) -> str:
         raising or returning "". Unit 4 has you trigger the empty wardrobe on
         purpose, so decide now what it should do.
 
-    TODO:
-        1. Check whether wardrobe['items'] is empty.
-        2. If it is, ask the model for general styling ideas for this item.
-        3. If it isn't, format the wardrobe items into the prompt and ask for
-           specific combinations naming pieces the user already owns.
-        4. Return the model's response.
-
     Test it from a terminal before you move on:
         python -c "from tools import suggest_outfit; from utils.data_loader import get_example_wardrobe, load_listings; print(suggest_outfit(load_listings()[0], get_example_wardrobe()))"
     """
-    # TODO: replace this with your implementation
-    return ""
+    item_details = (
+        f"Item: {new_item.get('title', 'Unknown item')}\n"
+        f"Description: {new_item.get('description', '')}\n"
+        f"Category: {new_item.get('category', '')}\n"
+        f"Size: {new_item.get('size', '')}\n"
+        f"Colors: {', '.join(new_item.get('colors') or [])}"
+    )
+    wardrobe_items = wardrobe.get("items") or []
+
+    if wardrobe_items:
+        wardrobe_details = "\n".join(
+            f"- {item.get('name', 'Unnamed item')} "
+            f"({item.get('category', '')}; "
+            f"colors: {', '.join(item.get('colors') or [])}; "
+            f"styles: {', '.join(item.get('style_tags') or [])})"
+            for item in wardrobe_items
+        )
+        prompt = (
+            "Suggest one or two outfits combining the thrifted item with "
+            "pieces from the user's wardrobe. Name only pieces listed in "
+            "the wardrobe.\n\n"
+            f"{item_details}\n\nWardrobe:\n{wardrobe_details}"
+        )
+    else:
+        prompt = (
+            "Give general styling advice for this thrifted item. The user "
+            "has an empty wardrobe, so suggest types of pieces they could "
+            "pair with it without claiming they already own them.\n\n"
+            f"{item_details}"
+        )
+
+    suggestion = generate(prompt).strip()
+    if not suggestion:
+        raise RuntimeError("The model returned an empty outfit suggestion.")
+    return suggestion
 
 
 # ── Tool 3: create_fit_card ───────────────────────────────────────────────────
@@ -175,5 +236,27 @@ def create_fit_card(outfit: str, new_item: dict) -> str:
     Test it from a terminal before you move on:
         python -c "from tools import create_fit_card; from utils.data_loader import load_listings; print(create_fit_card('jeans and white sneakers', load_listings()[0]))"
     """
-    # TODO: replace this with your implementation
-    return ""
+    title = new_item.get("title", "This find")
+    price = new_item.get("price")
+    platform = new_item.get("platform", "the listing platform")
+    price_text = f"${price:g}" if isinstance(price, (int, float)) else "unknown"
+
+    if not outfit or not outfit.strip():
+        return (
+            f"{title} is listed for {price_text} on {platform}. "
+            "Add an outfit suggestion to create a styled fit card."
+        )
+
+    prompt = (
+        "Write a short, post-ready fit caption in 2-4 sentences. Mention the "
+        "item title, its exact price and platform, and the vibe of the outfit. "
+        "Do not invent details.\n\n"
+        f"Item: {title}\n"
+        f"Price: {price_text}\n"
+        f"Platform: {platform}\n"
+        f"Outfit: {outfit.strip()}"
+    )
+    caption = generate(prompt).strip()
+    if not caption:
+        raise RuntimeError("The model returned an empty fit card.")
+    return caption

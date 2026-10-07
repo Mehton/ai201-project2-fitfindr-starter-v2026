@@ -115,7 +115,7 @@ FitFindr lets a user describe the clothing item they want using natural language
 **One full query**
 
 ```
-$ python app.py ask '...'
+$ python app.py ask 'silk slip dress in midi length under $40'
 
 ```
 
@@ -127,12 +127,12 @@ $ python -c "from tools import search_listings; print(search_listings('graphic t
 ```
 
 ```
-$ python -c "from tools import suggest_outfit; ..."
+$ python -c "from tools import suggest_outfit; from utils.data_loader import get_example_wardrobe, load_listings; print(suggest_outfit(load_listings()[0], get_example_wardrobe()))""
 
 ```
 
 ```
-$ python -c "from tools import create_fit_card; ..."
+$ python -c "from tools import create_fit_card; from utils.data_loader import load_listings; print(create_fit_card('jeans and white sneakers', load_listings()[0]))""
 
 ```
 
@@ -149,15 +149,17 @@ $ python -c "from tools import create_fit_card; ..."
 
 **Moment 1**
 
-- _What I asked for:_
-- _What came back:_
-- _What I changed:_
+- _What I asked for:_ I am going to paste my criteria here make sure :"Could someone check this without asking me what I meant?"
+- _What came back:_ Criterion 2 is the one to double-check. If the stop message comes from the model, it can't be 5 of 5 on part (b).
+  Criterion 3's "5 of 5 successful runs" means failed or stopped runs don't count, since criterion 2 already covers them.
+  For criterion 5, if the price ceiling isn't something you care about, the other options your instructions mention (the empty wardrobe path, what happens when the model can't be reached) work the same way. Just name a count or something you can see in a log.
+- _What I changed:_ I changed the criterion 5 from "The price ceiling is respected" to "Styling works with an empty wardrobe"
 
 **Moment 2**
 
-- _What I asked for:_
-- _What came back:_
-- _What I changed:_
+- _What I asked for:_ I pasted the `search_listings` function’s TODO list into the chat.
+- _What came back:_ I got a working implementation of search_listings.
+- _What I changed:_ N/A
 
 <!-- ═══════════════════════ UNIT 4 — THE TEST ═══════════════════════
 
