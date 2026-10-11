@@ -91,7 +91,6 @@ def _search(parsed: dict) -> list[dict]:
     """
     try:
         from mcp_client import call_tool
-
         results = call_tool(
             "search_listings",
             {
@@ -123,13 +122,43 @@ def run_agent(query: str, wardrobe: dict) -> dict:
 
     The branch rule, stated once so the code below can be read against it:
 
-        If search_listings returns an empty list, put a message in
-        session["error"] naming what the user could change, and return the
-        session without calling suggest_outfit. Otherwise take the first
-        result, put it in session["selected_item"], and continue.
+        If search_listings returns an empty list, set session["error"] to a message
+        that names the filters the user could loosen (description, size, max_price),
+        then return the session without calling suggest_outfit or create_fit_card.
+        Otherwise, put the top-ranked result in session["selected_item"] and continue
+        to suggest_outfit.
     """
+
+    parsed = parse_query(query)
     session = new_session(query, wardrobe)
     steps = 0
+    results = _search(parsed)
+    
+    session["parsed"] = parsed
+    trace.step("parse_query", inputs=query, returned=parsed)
+
+    session["parsed"] = parsed
+    trace.step("parse_query", inputs=query, returned=str(parsed))
+
+    session["search_results"] = results
+    trace.step("search_listings (via MCP)", inputs=str(parsed), returned = results, note= f"{len(results)} match(es)")
+
+    if not results:
+        session["error"] = _nothing_found_message(parsed)
+        trace.step("branch", note="search returned []: stopping before suggest_outfit")
+        return session
+
+    session["selected_item"] = results[0]
+    trace.step("select_item", returned=session["selected_item"])
+
+    # after suggest_outfit(...)
+    trace.step("suggest_outfit", inputs=session["selected_item"],
+            returned=session["outfit_suggestion"])
+
+    # after create_fit_card(...)
+    trace.step("create_fit_card", inputs=session["selected_item"],
+            returned=session["fit_card"])
+    
 
     # ⚠️ UNIT 4, MILESTONE 2 — everything in the try/except is unit 3 code; the
     # handler around it is what unit 4 adds, so that a bad key produces a

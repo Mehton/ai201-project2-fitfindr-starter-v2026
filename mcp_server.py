@@ -18,7 +18,7 @@ TODO — register one tool.
 
 Uncomment the block below and fill it in. Three things matter:
 
-  1. **The name.** Exactly what your agent will ask for.
+  1. **search_listings.** Exactly what your agent will ask for.
 
   2. **The description.** This is the part that isn't code and matters most.
      Write it before you look at the example. You are not writing it for your
@@ -67,23 +67,48 @@ from tools import search_listings as _search_listings_impl  # noqa: F401 — you
 mcp = FastMCP("fitfindr", log_level="WARNING")
 
 
-# ── TODO: uncomment and fill this in ──────────────────────────────────────────
-#
-# @mcp.tool()
-# def search_listings(
-#     description: str,
-#     size: str | None = None,
-#     max_price: float | None = None,
-# ) -> list[dict]:
-#     """
-#     <-- YOUR DESCRIPTION GOES HERE.
-#
-#         One or two sentences. What does this tool do, what does it need, and
-#         what does it give back when it finds nothing? Written for a reader
-#         who cannot see the code.
-#     """
-#     return _search_listings_impl(description, size, max_price)
-#
+# ── Registered MCP tool ───────────────────────────────────────────────────────
+@mcp.tool()
+def search_listings(
+    description: str,
+    size: str | None = None,
+    max_price: float | None = None,
+) -> list[dict]:
+    
+    """
+      Search the listings data for items matching a description, and optionally a
+      size and a price ceiling.
+  
+      This is the tool that doesn't call the model, which makes it the easiest one
+      to test and the one to move onto MCP in unit 4.
+  
+      Args:
+          description: keywords describing what the user wants
+                        (e.g. "vintage graphic tee").
+          size:         a size string to filter by, or None to skip size filtering.
+                        Match case-insensitively — "M" should match "S/M".
+  
+                        ⚠️ Read the sizes in the data before you reach for a plain
+                        substring test. `"s" in "us 9"` is True, and so is
+                        `"l" in "xl"`. A filter that returns shoes when someone
+                        asked for a small top reads like a broken search, and it
+                        will quietly cost you in unit 4 when you test criterion 1.
+                        What counts as a size match is part of your spec — decide
+                        it and write it into your Tool Inventory.
+          max_price:   maximum price, inclusive, or None to skip price filtering.
+  
+      Returns:
+          A list of matching listing dicts, best match first.
+          **Returns an empty list when nothing matches — an empty list, not None,
+          and not an exception.** Your loop branches on this.
+  
+      Each listing dict has these fields:
+          id, title, description, category, style_tags (list), size,
+          condition, price (float), colors (list), brand (str or None), platform
+
+    """
+
+    return _search_listings_impl(description, size, max_price)
 # ──────────────────────────────────────────────────────────────────────────────
 #
 # Two notes on the block above.
