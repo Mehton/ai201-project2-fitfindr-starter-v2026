@@ -60,6 +60,9 @@ works with a direct call, and **a documented failure earns the point in full.**
 from mcp.server.fastmcp import FastMCP
 
 from tools import search_listings as _search_listings_impl  # noqa: F401 — you'll use this below
+from tools import create_fit_card as _create_fit_card_impl
+from generate import ModelUnavailable
+from mcp.server.fastmcp.exceptions import ToolError
 
 # log_level="WARNING" keeps the server from printing an INFO line for every
 # request. Without it your terminal fills with "Processing request of type
@@ -123,6 +126,45 @@ def search_listings(
 # are not optional here. `description: str` becomes a required string;
 # `max_price: float | None = None` becomes an optional number. Getting these
 # wrong is the most common reason a call is rejected.
+
+
+# ── Second registered MCP tool ────────────────────────────────────────────────
+@mcp.tool()
+def create_fit_card(outfit: str, new_item: dict) -> str:
+    """Write a short, post-ready social caption (2-4 sentences) for a
+    second-hand clothing find and the outfit it is styled in. Calls a
+    language model, so the wording differs between calls.
+
+    Inputs:
+      outfit (string, required): the outfit description to caption, in
+        plain text, e.g. "baggy dark-wash jeans, chunky white sneakers".
+        Usually the output of an outfit-suggestion step.
+      new_item (object, required): the listing being captioned. Only three
+        fields are read: title (string), price (number, US dollars), and
+        platform (string, e.g. "depop"). Any other fields are ignored, so a
+        listing object returned by search_listings can be passed as-is.
+        A missing title or platform falls back to generic wording; a
+        missing or non-numeric price is written as "unknown".
+
+    Returns:
+      A non-empty string: the caption, mentioning the item title, its exact
+      price (e.g. "$18"), and the platform.
+
+    When the outfit is empty:
+      If outfit is "" or only whitespace, no model call is made. It returns
+      a fixed non-empty string naming the item, price, and platform, and
+      asking for an outfit suggestion. Never an empty string or null.
+
+    When the model can't be reached (bad API key, no network):
+      Fails with a tool error whose message starts with "MODEL_UNAVAILABLE:".
+      It does not return an empty string. Retrying will not help until the
+      server's API key or network is fixed.
+    """
+    try:
+        return _create_fit_card_impl(outfit, new_item)
+    except ModelUnavailable as exc:
+        raise ToolError(f"MODEL_UNAVAILABLE: {exc}") from exc
+# ──────────────────────────────────────────────────────────────────────────────
 
 
 if __name__ == "__main__":

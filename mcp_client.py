@@ -75,26 +75,56 @@ async def _call(name: str, arguments: dict):
     params = StdioServerParameters(
         command=sys.executable,
         args=[str(SERVER)],
+        env=_server_env(),
     )
 
+    # Errors are raised *after* the connection closes. Raised inside it, the
+    # library wraps them in an ExceptionGroup and the tool's own message (e.g.
+    # "MODEL_UNAVAILABLE: ...") is lost.
+    error = None
     async with stdio_client(params) as (read, write):
         async with ClientSession(read, write) as session:
             await session.initialize()
 
             available = {t.name for t in (await session.list_tools()).tools}
             if name not in available:
-                raise MCPError(
+                error = MCPError(
                     f"The server doesn't offer a tool called '{name}'.\n"
                     f"It offers: {', '.join(sorted(available)) or '(nothing yet)'}\n"
                     f"Register your tool in mcp_server.py — that's Milestone 1."
                 )
+            else:
+                result = await session.call_tool(name, arguments)
+                if getattr(result, "isError", False):
+                    error = MCPError(
+                        f"The tool '{name}' returned an error: {_text(result)}"
+                    )
 
-            result = await session.call_tool(name, arguments)
+    if error is not None:
+        raise error
+    return _unwrap(result)
 
-            if getattr(result, "isError", False):
-                raise MCPError(f"The tool '{name}' returned an error: {_text(result)}")
 
-            return _unwrap(result)
+
+def _server_env() -> dict:
+    """
+    The environment the server process starts with.
+
+    The MCP library only passes a short allowlist of variables (PATH, HOME…)
+    to the server. Once a tool on the server calls the model, the server
+    needs the same settings as the agent — otherwise run_eval.py turns the
+    cache off in this process and the server quietly keeps it on.
+    """
+    import os
+
+    import config
+    from mcp.client.stdio import get_default_environment
+
+    env = get_default_environment()
+    env.update({k: v for k, v in os.environ.items()
+                if k.startswith("AI201_") or k == "GEMINI_API_KEY"})
+    env["AI201_CACHE"] = "1" if config.CACHE_ENABLED else "0"
+    return env
 
 
 def _unwrap(result):

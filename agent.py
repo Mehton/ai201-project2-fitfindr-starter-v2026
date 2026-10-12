@@ -106,6 +106,26 @@ def _search(parsed: dict) -> list[dict]:
         )
 
 
+
+def _fit_card(outfit: str, item: dict) -> str:
+    """
+    Call create_fit_card over MCP, the same way _search does for search.
+
+    One difference from _search: this tool calls the model. If the server
+    says the model is unreachable, that is a real failure, not "MCP is
+    down" — so it is raised as ModelUnavailable for run_agent's handler,
+    instead of falling back and calling the model a second time.
+    """
+    from mcp_client import MCPError, call_tool
+
+    try:
+        return call_tool("create_fit_card", {"outfit": outfit, "new_item": item})
+    except MCPError as exc:
+        if "MODEL_UNAVAILABLE" in str(exc):
+            raise ModelUnavailable(str(exc)) from exc
+        return create_fit_card(outfit, item)
+
+
 def run_agent(query: str, wardrobe: dict) -> dict:
     """
     Run the loop once and return the finished session.
@@ -190,11 +210,11 @@ def run_agent(query: str, wardrobe: dict) -> dict:
 
         steps += 1
         trace.check_iterations(steps)
-        session["fit_card"] = create_fit_card(
+        session["fit_card"] = _fit_card(
             session["outfit_suggestion"], session["selected_item"]
         )
         trace.step(
-            "create_fit_card",
+            "create_fit_card (via MCP)",
             inputs=session["selected_item"],
             returned=session["fit_card"],
         )
