@@ -241,19 +241,177 @@ that produced it:
 **Happy path**
 
 ```
+python app.py ask "vintage graphic tee under $30" --empty-wardrobe
 
+(running with an empty wardrobe)
+[1] parse_query
+      in:  vintage graphic tee under
+      out: {'description': 'vintage graphic tee under', 'size': None, 'max_price': None}
+[2] select_item
+      out: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+[3] suggest_outfit
+      in:  Y2K Baby Tee — Butterfly Print ($18.0, depop)
+[4] create_fit_card
+      in:  Y2K Baby Tee — Butterfly Print ($18.0, depop)
+[5] select_item
+      out: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+[6] suggest_outfit
+      in:  Y2K Baby Tee — Butterfly Print ($18.0, depop)
+      out: Since you are starting with a completely empty wardrobe, building around a statement Y2K piece like a butterfl…
+      →    0 wardrobe item(s)
+[7] create_fit_card
+      in:  Y2K Baby Tee — Butterfly Print ($18.0, depop)
+      out: Leaning all the way into the nostalgic 2000s aesthetic with this Y2K Baby Tee — Butterfly Print from depop for…
+
+  Found:    Y2K Baby Tee — Butterfly Print — $18.0 on depop
+
+  Outfit:   Since you are starting with a completely empty wardrobe, building around a statement Y2K piece like a butterflybaby tee is super fun! Because this top is fitted, cropped, and features playful pink, purple, and white graphics, the key is to balance the proportions and lean into that nostalgic 2000s aesthetic.
+
+Here is a guide on the types of pieces you should look for to build out outfits around this top:
+
+### 1. Bottoms (To balance the crop and fit)
+Since the baby tee is tight and short, you want to contrast it with either high-waisted structured pieces or lean fully into low-rise Y2K proportions. Look for:
+*   **Baggy Cargo Pants or Parachute Pants:** A classic Y2K contrast. Pair the fitted top with loose, low-rise or mid-rise cargos in neutral tones (like khaki, grey, or olive) or pastel pink to match the shirt.
+*   **Denim (Wide-Leg or Straight-Leg):** Look for light-wash or medium-wash jeans. High-waisted straight-leg jeans will give you a clean, balanced look, while low-rise flare jeans will amplify the 2000s vibe.
+*   **Pleated Tennis Skirts:** A white or pastel pleated mini skirt creates a sweet, sporty, early-2000s pop-star look.
+*   **Slip Skirts or Denim Mini Skirts:** Great for warmer weather, offering a nice texture contrast against the cotton tee.
+
+### 2. Footwear
+Shoes can easily pull this look in different directions depending on your personal style:
+*   **Chunky Sneakers:** Think platform sneakers or retro skate shoes (like chunky Nike Dunks or Adidas Superstars) to anchor the outfit.
+*   **Platform Sandals or Flip-Flops:** For the ultimate summer Y2K beach-to-city vibe.
+*   **Square-Toe Boots or Kitten Heels:** If you want to dress the baby tee up for a night out, a low-heeled sandal or bootie works wonders.
+
+### 3. Outerwear (For layering)
+Baby tees look great on their own, but adding a third piece completes an outfit:
+*   **Zip-Up Hoodies:** An oversized, slightly worn-in zip-up hoodie (bonus points if it's pink or grey) worn half-zipped over the baby tee.
+*   **Faux Leather Jackets or Denim Jackets:** A cropped leather jacket adds an edgy contrast to the cute, girly butterfly graphic.
+*   **Unbuttoned Oversized Button-Downs:** A white or striped cotton shirt worn open over the baby tee for a relaxed, effortless layer.
+
+### 4. Accessories
+Accessories are where the Y2K aesthetic really shines:
+*   **Bags:** Look for a small shoulder bag (a "baguette" bag), a pink mini backpack, or a metallic silver purse.
+*   **Jewelry:** Chunky plastic rings in bright colors, beaded choker necklaces, hoop earrings, and hair claw clips.
+*   **Eyewear:** Tinted frameless sunglasses (pink or purple lenses would tie the shirt's colors together).
+
+### Starter Outfit Formula to Shop For:
+If you want a foolproof first outfit to look for, try: **The Butterfly Baby Tee + Light-Wash Low-Rise Flare Jeans + Chunky Platform Sneakers + a White Shoulder Bag.**
+
+  Fit card: Leaning all the way into the nostalgic 2000s aesthetic with this Y2K Baby Tee — Butterfly Print from depop for just $18! This fitted, cropped tee with its playful pink, purple, and white graphics is the ultimate fun statement piece to kick off a new wardrobe.
+
+2 model calls this session, 882 prompt + 784 output tokens
+```
+
+```
+python app.py ask "vintage graphic tee under $30"
+
+[1] parse_query
+      in:  vintage graphic tee under
+      out: {'description': 'vintage graphic tee under', 'size': None, 'max_price': None}
+[2] select_item
+      out: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+[3] suggest_outfit
+      in:  Y2K Baby Tee — Butterfly Print ($18.0, depop)
+[4] create_fit_card
+      in:  Y2K Baby Tee — Butterfly Print ($18.0, depop)
+[5] select_item
+      out: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+[6] suggest_outfit
+      in:  Y2K Baby Tee — Butterfly Print ($18.0, depop)
+      out: Outfit 1: - Y2K Baby Tee — Butterfly Print - Baggy straight-leg jeans, dark wash - Chunky white sneakers - Bla…
+      →    10 wardrobe item(s)
+[7] create_fit_card
+      in:  Y2K Baby Tee — Butterfly Print ($18.0, depop)
+      out: Channeling major nostalgic energy with this Y2K Baby Tee with Butterfly Print! Snagged this absolute gem on de…
+
+  Found:    Y2K Baby Tee — Butterfly Print — $18.0 on depop
+
+  Outfit:   Outfit 1:
+- Y2K Baby Tee — Butterfly Print
+- Baggy straight-leg jeans, dark wash
+- Chunky white sneakers
+- Black crossbody bag
+
+Outfit 2:
+- Y2K Baby Tee — Butterfly Print
+- Wide-leg khaki trousers
+- Black cropped zip hoodie
+- Chunky white sneakers
+- Black crossbody bag
+
+  Fit card: Channeling major nostalgic energy with this Y2K Baby Tee with Butterfly Print! Snagged this absolute gem on depop for just $18 and styled it with baggy dark-wash denim and chunky sneakers for the ultimate retro street vibe. It’s givingeffortless 2000s icon. 🦋✨
+
+0 model calls this session, 2 served from cache
+```
+
+```
+ python app.py ask "vintage graphic tee under $30"
+
+[1] parse_query
+      in:  vintage graphic tee under
+      out: {'description': 'vintage graphic tee under', 'size': None, 'max_price': None}
+[2] search_listings (via MCP)
+      in:  {'description': 'vintage graphic tee under', 'size': None, 'max_price': None}
+      out: 10 items: Y2K Baby Tee — Butterfly Print, Graphic Tee — 2003 Tour Bootleg Style, Vintage Band Tee — Faded Grey …+7 more
+      →    10 match(es)
+[3] select_item
+      out: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+[4] suggest_outfit
+      in:  Y2K Baby Tee — Butterfly Print ($18.0, depop)
+[5] create_fit_card
+      in:  Y2K Baby Tee — Butterfly Print ($18.0, depop)
+[6] select_item
+      out: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+[7] model unavailable
+      →    stopping, search results kept
+
+  The model couldn't be reached, so the outfit and caption steps didn't run. The search worked — 10 listing(s) were found. Check GEMINI_API_KEY in your .env, then run the same query again.
+What the service said: The model rejected your API key. Check GEMINI_API_KEY in your .env file, or create a fresh key at aistudio.google.com.
+
+1 model calls this session
 ```
 
 **Empty search**
 
 ```
+python app.py ask '...'
 
+[1] parse_query
+      in:  ...
+      out: {'description': '...', 'size': None, 'max_price': None}
+[2] search_listings (via MCP)
+      in:  {'description': '...', 'size': None, 'max_price': None}
+      out: [] (empty)
+      →    0 match(es)
+[3] branch
+      →    search returned []: stopping before suggest_outfit
+
+  Nothing in the listings matched description '...'.
+Things to change: try broader words — 'jacket' finds more than 'cropped corduroy jacket'.
+
+0 model calls this session
 ```
 
-**On the MCP move:** <!-- what changed in your code, and whether anything
-behaved differently afterwards. If the rewire didn't work, say exactly where it
-broke — the error text and the last thing that worked. That earns the point in
-full. -->
+**On the MCP move:**
+
+_What changed in the code._ In `mcp_server.py` I registered one tool,
+`search_listings`, with `@mcp.tool()`. It wraps the existing function from
+`tools.py` (imported as `_search_listings_impl` so the tool doesn't call
+itself). FastMCP built the input schema from my type hints: `description`
+as a required string, and `size` and `max_price` as optional (string /
+number). I wrote the docstring for an agent that can't see my code. It
+gives the valid size codes, says that `max_price` is in US dollars and
+inclusive, lists every field in a returned listing, and says that no match
+returns `[]`, never null or an error. In `agent.py`, `run_agent()` no
+longer calls `search_listings()` directly. It goes through `_search()`,
+which calls `call_tool("search_listings", {...})` over MCP and falls back
+to the direct call if the server can't be reached.
+
+My first test used the global Python 3.13, which doesn't have the `mcp` package. `call_tool` failed with `ModuleNotFoundError: No module named 'mcp'`, but `agent.py` still
+gave correct answers, because `_search()` quietly fell back to the
+direct call. The trace still printed "search_listings (via MCP)", even
+though MCP wasn't used. It only works over MCP when run with the
+project venv. The fallback keeps the app running, but it hides whether MCP is actually being used.
 
 ---
 
@@ -295,26 +453,26 @@ full. -->
 
      SUBMISSION CHECKLIST — unit 3
 
-       [ ] criteria.md has five numbered criteria, each with a target
-       [ ] Each criterion has a reason underneath it
-       [ ] All five unit 3 sections above have real content
-       [ ] Tool Inventory: all three tools, inputs WITH TYPES, a specific
+       [x] criteria.md has five numbered criteria, each with a target
+       [x] Each criterion has a reason underneath it
+       [x] All five unit 3 sections above have real content
+       [x] Tool Inventory: all three tools, inputs WITH TYPES, a specific
            return value, and the empty case
-       [ ] Planning Loop names the branch rule and agent.py::run_agent
-       [ ] Sample Run: one full query plus the three per-tool tests, as text
-       [ ] At least four new commits
-       [ ] Repository URL submitted — WRITE IT DOWN, you submit the same one
+       [x] Planning Loop names the branch rule and agent.py::run_agent
+       [x] Sample Run: one full query plus the three per-tool tests, as text
+       [x] At least four new commits
+       [x] Repository URL submitted — WRITE IT DOWN, you submit the same one
            next unit
 
      SUBMISSION CHECKLIST — unit 4
 
-       [ ] mcp_server.py exists with one tool registered
+       [x] mcp_server.py exists with one tool registered
            (or a written record of exactly where the rewire broke)
-       [ ] Run Log — Before, five criteria, five tries each
-       [ ] Real output pasted underneath, naming file and function
+       [x] Run Log — Before, five criteria, five tries each
+       [x] Real output pasted underneath, naming file and function
        [ ] A verdict on every criterion
        [ ] A diagnosis for every miss, naming a place AND a mechanism
-       [ ] Loop Trace, with the MCP call visible in it
+       [x] Loop Trace, with the MCP call visible in it
        [ ] All three failure modes triggered and handled
        [ ] One improvement, with Run Log — After in the same format
        [ ] What's Still Broken
