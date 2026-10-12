@@ -179,18 +179,84 @@ $ python -c "from tools import create_fit_card; from utils.data_loader import lo
      `python run_eval.py --label before` runs everything and writes the table
      into results/. Paste it here and fill in the verdicts. -->
 
-| Criterion | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict |
-| --------- | ------ | ----- | ----- | ----- | ----- | ----- | ------- |
-| 1.        |        |       |       |       |       |       |         |
-| 2.        |        |       |       |       |       |       |         |
-| 3.        |        |       |       |       |       |       |         |
-| 4.        |        |       |       |       |       |       |         |
-| 5.        |        |       |       |       |       |       |         |
+| Criterion                                            | Target | Try 1 | Try 2 | Try 3 | Try 4 | Try 5 | Verdict   |
+| ---------------------------------------------------- | ------ | ----- | ----- | ----- | ----- | ----- | --------- |
+| 1. A matching query completes all three tools        | 4 of 5 | Pass  | Pass  | Pass  | Pass  | Pass  | Met (5/5) |
+| 2. An impossible query stops before the second tool  | 5 of 5 | Pass  | Pass  | Pass  | Pass  | Pass  | Met (5/5) |
+| 3. The item stays the same item through the pipeline | 5 of 5 | Pass  | Pass  | Pass  | Pass  | Pass  | Met (5/5) |
+| 4. The fit card mentions the price                   | 4 of 5 | Pass  | Pass  | Pass  | Pass  | Pass  | Met (5/5) |
+| 5. Styling works with an empty wardrobe              | 4 of 5 | Pass  | Pass  | Pass  | Pass  | Pass  | Met (5/5) |
 
 **Real output from one try**, pasted as text, naming the file and function
 that produced it:
 
 ```
+- Produced by: `run_eval.py::main`
+- Loop: `agent.py::run_agent` · tools: `tools.py`
+- Tries per scenario: 5, caching off
+- Temperature: 0.9
+- When: 2026-10-11 18:33
+
+**Try 1**
+
+- stopped early: no
+- selected_item: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+- search_results: 10
+
+Outfit suggestion:
+
+
+**Outfit 1 (Streetwear Y2K)**
+
+- Y2K Baby Tee — Butterfly Print
+- Baggy straight-leg jeans, dark wash
+- Chunky white sneakers
+- Black crossbody bag
+
+**Outfit 2 (Edgy Contrast)**
+
+- Y2K Baby Tee — Butterfly Print
+- Wide-leg khaki trousers
+- Black cropped zip hoodie
+- Black combat boots
+- Brown leather belt
+
+```
+
+Fit card:
+
+```
+
+Serving total Y2K streetwear vibes in this cute butterfly tee paired with baggy dark wash denim and chunky sneakers. Grab the Y2K Baby Tee — Butterfly Print on Depop for just $18! ✨
+
+```
+
+Trace:
+
+```
+
+[1] parse_query
+in: vintage graphic tee under $30
+out: {'description': 'vintage graphic tee', 'size': None, 'max_price': 30.0}
+[2] search_listings (via MCP)
+in: {'description': 'vintage graphic tee', 'size': None, 'max_price': 30.0}
+out: 10 items: Y2K Baby Tee — Butterfly Print, Graphic Tee — 2003 Tour Bootleg Style, Vintage Band Tee — Faded Grey … +7 more
+→ 10 match(es)
+[3] select_item
+out: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+[4] suggest_outfit
+in: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+[5] create_fit_card
+in: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+[6] select_item
+out: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+[7] suggest_outfit
+in: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+out: **Outfit 1 (Streetwear Y2K)** - Y2K Baby Tee — Butterfly Print - Baggy straight-leg jeans, dark wash - Chunky …
+→ 10 wardrobe item(s)
+[8] create_fit_card
+in: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+out: Serving total Y2K streetwear vibes in this cute butterfly tee paired with baggy dark wash denim and chunky sne…
 
 ```
 
@@ -214,15 +280,19 @@ that produced it:
      Look for a pattern. Three misses on the same tool is one problem, not
      three. -->
 
-| #   | Criterion | Target | Verdict | How I decided |
-| --- | --------- | ------ | ------- | ------------- |
-| 1   |           |        |         |               |
-| 2   |           |        |         |               |
-| 3   |           |        |         |               |
-| 4   |           |        |         |               |
-| 5   |           |        |         |               |
+All five criteria were MET in `results/run_2026-10-11_1833_before.md` (5 tries per scenario, cache off, temperature 0.9). Each verdict is against the target I set in unit 3.
+
+| #   | Criterion                                         | Target   | Verdict       | How I decided                                                                                                                                                                                                                                                                  |
+| --- | ------------------------------------------------- | -------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 1   | A matching query completes all three tools        | 4 of 5   | **MET (5/5)** | For `vintage graphic tee under $30`, every try selected the Y2K Baby Tee — Butterfly Print ($18.0, depop), ran `suggest_outfit` and `create_fit_card`, and returned a fit card. None stopped early.                                                                            |
+| 2   | An impossible query stops before the second tool  | 5 of 5   | **MET (5/5)** | For `designer ballgown size XXS under $5`, every trace is exactly `parse_query → search_listings (via MCP) → branch`, with `0 match(es)` and no `suggest_outfit` step. The message names all three things to change: broader words, drop the size, raise the ceiling above $5. |
+| 3   | The item stays the same item through the pipeline | 5 of 5   | **MET (5/5)** | In each try, I compared the `suggest_outfit` trace's `in:` line with `selected_item`. All 5 matched on title, price ($18.0) and platform (depop).                                                                                                                              |
+| 4   | The fit card mentions the price                   | ≥ 4 of 5 | **MET (5/5)** | I searched each fit card for the selected item's price. All 5 contain "$18", e.g. try 3: _"Grab this exact piece on Depop for just $18…"_.                                                                                                                                     |
+| 5   | Styling works with an empty wardrobe              | ≥ 4 of 5 | **MET (5/5)** | For `denim jacket under $50` with an empty wardrobe, every try returned a non-empty suggestion (2,583–3,864 characters). There were no crashes and no empty strings.                                                                                                           |
 
 **Diagnoses**
+
+There were no misses, so there is nothing to diagnose
 
 ---
 
@@ -241,98 +311,112 @@ that produced it:
 **Happy path**
 
 ```
+
 python app.py ask "vintage graphic tee under $30" --empty-wardrobe
 
 (running with an empty wardrobe)
 [1] parse_query
-      in:  vintage graphic tee under
-      out: {'description': 'vintage graphic tee under', 'size': None, 'max_price': None}
+in: vintage graphic tee under
+out: {'description': 'vintage graphic tee under', 'size': None, 'max_price': None}
 [2] select_item
-      out: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+out: Y2K Baby Tee — Butterfly Print ($18.0, depop)
 [3] suggest_outfit
-      in:  Y2K Baby Tee — Butterfly Print ($18.0, depop)
+in: Y2K Baby Tee — Butterfly Print ($18.0, depop)
 [4] create_fit_card
-      in:  Y2K Baby Tee — Butterfly Print ($18.0, depop)
+in: Y2K Baby Tee — Butterfly Print ($18.0, depop)
 [5] select_item
-      out: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+out: Y2K Baby Tee — Butterfly Print ($18.0, depop)
 [6] suggest_outfit
-      in:  Y2K Baby Tee — Butterfly Print ($18.0, depop)
-      out: Since you are starting with a completely empty wardrobe, building around a statement Y2K piece like a butterfl…
-      →    0 wardrobe item(s)
+in: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+out: Since you are starting with a completely empty wardrobe, building around a statement Y2K piece like a butterfl…
+→ 0 wardrobe item(s)
 [7] create_fit_card
-      in:  Y2K Baby Tee — Butterfly Print ($18.0, depop)
-      out: Leaning all the way into the nostalgic 2000s aesthetic with this Y2K Baby Tee — Butterfly Print from depop for…
+in: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+out: Leaning all the way into the nostalgic 2000s aesthetic with this Y2K Baby Tee — Butterfly Print from depop for…
 
-  Found:    Y2K Baby Tee — Butterfly Print — $18.0 on depop
+Found: Y2K Baby Tee — Butterfly Print — $18.0 on depop
 
-  Outfit:   Since you are starting with a completely empty wardrobe, building around a statement Y2K piece like a butterflybaby tee is super fun! Because this top is fitted, cropped, and features playful pink, purple, and white graphics, the key is to balance the proportions and lean into that nostalgic 2000s aesthetic.
+Outfit: Since you are starting with a completely empty wardrobe, building around a statement Y2K piece like a butterflybaby tee is super fun! Because this top is fitted, cropped, and features playful pink, purple, and white graphics, the key is to balance the proportions and lean into that nostalgic 2000s aesthetic.
 
 Here is a guide on the types of pieces you should look for to build out outfits around this top:
 
 ### 1. Bottoms (To balance the crop and fit)
+
 Since the baby tee is tight and short, you want to contrast it with either high-waisted structured pieces or lean fully into low-rise Y2K proportions. Look for:
-*   **Baggy Cargo Pants or Parachute Pants:** A classic Y2K contrast. Pair the fitted top with loose, low-rise or mid-rise cargos in neutral tones (like khaki, grey, or olive) or pastel pink to match the shirt.
-*   **Denim (Wide-Leg or Straight-Leg):** Look for light-wash or medium-wash jeans. High-waisted straight-leg jeans will give you a clean, balanced look, while low-rise flare jeans will amplify the 2000s vibe.
-*   **Pleated Tennis Skirts:** A white or pastel pleated mini skirt creates a sweet, sporty, early-2000s pop-star look.
-*   **Slip Skirts or Denim Mini Skirts:** Great for warmer weather, offering a nice texture contrast against the cotton tee.
+
+- **Baggy Cargo Pants or Parachute Pants:** A classic Y2K contrast. Pair the fitted top with loose, low-rise or mid-rise cargos in neutral tones (like khaki, grey, or olive) or pastel pink to match the shirt.
+- **Denim (Wide-Leg or Straight-Leg):** Look for light-wash or medium-wash jeans. High-waisted straight-leg jeans will give you a clean, balanced look, while low-rise flare jeans will amplify the 2000s vibe.
+- **Pleated Tennis Skirts:** A white or pastel pleated mini skirt creates a sweet, sporty, early-2000s pop-star look.
+- **Slip Skirts or Denim Mini Skirts:** Great for warmer weather, offering a nice texture contrast against the cotton tee.
 
 ### 2. Footwear
+
 Shoes can easily pull this look in different directions depending on your personal style:
-*   **Chunky Sneakers:** Think platform sneakers or retro skate shoes (like chunky Nike Dunks or Adidas Superstars) to anchor the outfit.
-*   **Platform Sandals or Flip-Flops:** For the ultimate summer Y2K beach-to-city vibe.
-*   **Square-Toe Boots or Kitten Heels:** If you want to dress the baby tee up for a night out, a low-heeled sandal or bootie works wonders.
+
+- **Chunky Sneakers:** Think platform sneakers or retro skate shoes (like chunky Nike Dunks or Adidas Superstars) to anchor the outfit.
+- **Platform Sandals or Flip-Flops:** For the ultimate summer Y2K beach-to-city vibe.
+- **Square-Toe Boots or Kitten Heels:** If you want to dress the baby tee up for a night out, a low-heeled sandal or bootie works wonders.
 
 ### 3. Outerwear (For layering)
+
 Baby tees look great on their own, but adding a third piece completes an outfit:
-*   **Zip-Up Hoodies:** An oversized, slightly worn-in zip-up hoodie (bonus points if it's pink or grey) worn half-zipped over the baby tee.
-*   **Faux Leather Jackets or Denim Jackets:** A cropped leather jacket adds an edgy contrast to the cute, girly butterfly graphic.
-*   **Unbuttoned Oversized Button-Downs:** A white or striped cotton shirt worn open over the baby tee for a relaxed, effortless layer.
+
+- **Zip-Up Hoodies:** An oversized, slightly worn-in zip-up hoodie (bonus points if it's pink or grey) worn half-zipped over the baby tee.
+- **Faux Leather Jackets or Denim Jackets:** A cropped leather jacket adds an edgy contrast to the cute, girly butterfly graphic.
+- **Unbuttoned Oversized Button-Downs:** A white or striped cotton shirt worn open over the baby tee for a relaxed, effortless layer.
 
 ### 4. Accessories
+
 Accessories are where the Y2K aesthetic really shines:
-*   **Bags:** Look for a small shoulder bag (a "baguette" bag), a pink mini backpack, or a metallic silver purse.
-*   **Jewelry:** Chunky plastic rings in bright colors, beaded choker necklaces, hoop earrings, and hair claw clips.
-*   **Eyewear:** Tinted frameless sunglasses (pink or purple lenses would tie the shirt's colors together).
+
+- **Bags:** Look for a small shoulder bag (a "baguette" bag), a pink mini backpack, or a metallic silver purse.
+- **Jewelry:** Chunky plastic rings in bright colors, beaded choker necklaces, hoop earrings, and hair claw clips.
+- **Eyewear:** Tinted frameless sunglasses (pink or purple lenses would tie the shirt's colors together).
 
 ### Starter Outfit Formula to Shop For:
+
 If you want a foolproof first outfit to look for, try: **The Butterfly Baby Tee + Light-Wash Low-Rise Flare Jeans + Chunky Platform Sneakers + a White Shoulder Bag.**
 
-  Fit card: Leaning all the way into the nostalgic 2000s aesthetic with this Y2K Baby Tee — Butterfly Print from depop for just $18! This fitted, cropped tee with its playful pink, purple, and white graphics is the ultimate fun statement piece to kick off a new wardrobe.
+Fit card: Leaning all the way into the nostalgic 2000s aesthetic with this Y2K Baby Tee — Butterfly Print from depop for just $18! This fitted, cropped tee with its playful pink, purple, and white graphics is the ultimate fun statement piece to kick off a new wardrobe.
 
 2 model calls this session, 882 prompt + 784 output tokens
+
 ```
 
 ```
+
 python app.py ask "vintage graphic tee under $30"
 
 [1] parse_query
-      in:  vintage graphic tee under
-      out: {'description': 'vintage graphic tee under', 'size': None, 'max_price': None}
+in: vintage graphic tee under
+out: {'description': 'vintage graphic tee under', 'size': None, 'max_price': None}
 [2] select_item
-      out: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+out: Y2K Baby Tee — Butterfly Print ($18.0, depop)
 [3] suggest_outfit
-      in:  Y2K Baby Tee — Butterfly Print ($18.0, depop)
+in: Y2K Baby Tee — Butterfly Print ($18.0, depop)
 [4] create_fit_card
-      in:  Y2K Baby Tee — Butterfly Print ($18.0, depop)
+in: Y2K Baby Tee — Butterfly Print ($18.0, depop)
 [5] select_item
-      out: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+out: Y2K Baby Tee — Butterfly Print ($18.0, depop)
 [6] suggest_outfit
-      in:  Y2K Baby Tee — Butterfly Print ($18.0, depop)
-      out: Outfit 1: - Y2K Baby Tee — Butterfly Print - Baggy straight-leg jeans, dark wash - Chunky white sneakers - Bla…
-      →    10 wardrobe item(s)
+in: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+out: Outfit 1: - Y2K Baby Tee — Butterfly Print - Baggy straight-leg jeans, dark wash - Chunky white sneakers - Bla…
+→ 10 wardrobe item(s)
 [7] create_fit_card
-      in:  Y2K Baby Tee — Butterfly Print ($18.0, depop)
-      out: Channeling major nostalgic energy with this Y2K Baby Tee with Butterfly Print! Snagged this absolute gem on de…
+in: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+out: Channeling major nostalgic energy with this Y2K Baby Tee with Butterfly Print! Snagged this absolute gem on de…
 
-  Found:    Y2K Baby Tee — Butterfly Print — $18.0 on depop
+Found: Y2K Baby Tee — Butterfly Print — $18.0 on depop
 
-  Outfit:   Outfit 1:
+Outfit: Outfit 1:
+
 - Y2K Baby Tee — Butterfly Print
 - Baggy straight-leg jeans, dark wash
 - Chunky white sneakers
 - Black crossbody bag
 
 Outfit 2:
+
 - Y2K Baby Tee — Butterfly Print
 - Wide-leg khaki trousers
 - Black cropped zip hoodie
@@ -342,54 +426,59 @@ Outfit 2:
   Fit card: Channeling major nostalgic energy with this Y2K Baby Tee with Butterfly Print! Snagged this absolute gem on depop for just $18 and styled it with baggy dark-wash denim and chunky sneakers for the ultimate retro street vibe. It’s givingeffortless 2000s icon. 🦋✨
 
 0 model calls this session, 2 served from cache
+
 ```
 
 ```
- python app.py ask "vintage graphic tee under $30"
+
+python app.py ask "vintage graphic tee under $30"
 
 [1] parse_query
-      in:  vintage graphic tee under
-      out: {'description': 'vintage graphic tee under', 'size': None, 'max_price': None}
+in: vintage graphic tee under
+out: {'description': 'vintage graphic tee under', 'size': None, 'max_price': None}
 [2] search_listings (via MCP)
-      in:  {'description': 'vintage graphic tee under', 'size': None, 'max_price': None}
-      out: 10 items: Y2K Baby Tee — Butterfly Print, Graphic Tee — 2003 Tour Bootleg Style, Vintage Band Tee — Faded Grey …+7 more
-      →    10 match(es)
+in: {'description': 'vintage graphic tee under', 'size': None, 'max_price': None}
+out: 10 items: Y2K Baby Tee — Butterfly Print, Graphic Tee — 2003 Tour Bootleg Style, Vintage Band Tee — Faded Grey …+7 more
+→ 10 match(es)
 [3] select_item
-      out: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+out: Y2K Baby Tee — Butterfly Print ($18.0, depop)
 [4] suggest_outfit
-      in:  Y2K Baby Tee — Butterfly Print ($18.0, depop)
+in: Y2K Baby Tee — Butterfly Print ($18.0, depop)
 [5] create_fit_card
-      in:  Y2K Baby Tee — Butterfly Print ($18.0, depop)
+in: Y2K Baby Tee — Butterfly Print ($18.0, depop)
 [6] select_item
-      out: Y2K Baby Tee — Butterfly Print ($18.0, depop)
+out: Y2K Baby Tee — Butterfly Print ($18.0, depop)
 [7] model unavailable
-      →    stopping, search results kept
+→ stopping, search results kept
 
-  The model couldn't be reached, so the outfit and caption steps didn't run. The search worked — 10 listing(s) were found. Check GEMINI_API_KEY in your .env, then run the same query again.
+The model couldn't be reached, so the outfit and caption steps didn't run. The search worked — 10 listing(s) were found. Check GEMINI_API_KEY in your .env, then run the same query again.
 What the service said: The model rejected your API key. Check GEMINI_API_KEY in your .env file, or create a fresh key at aistudio.google.com.
 
 1 model calls this session
+
 ```
 
 **Empty search**
 
 ```
+
 python app.py ask '...'
 
 [1] parse_query
-      in:  ...
-      out: {'description': '...', 'size': None, 'max_price': None}
+in: ...
+out: {'description': '...', 'size': None, 'max_price': None}
 [2] search_listings (via MCP)
-      in:  {'description': '...', 'size': None, 'max_price': None}
-      out: [] (empty)
-      →    0 match(es)
+in: {'description': '...', 'size': None, 'max_price': None}
+out: [] (empty)
+→ 0 match(es)
 [3] branch
-      →    search returned []: stopping before suggest_outfit
+→ search returned []: stopping before suggest_outfit
 
-  Nothing in the listings matched description '...'.
+Nothing in the listings matched description '...'.
 Things to change: try broader words — 'jacket' finds more than 'cropped corduroy jacket'.
 
 0 model calls this session
+
 ```
 
 **On the MCP move:**
@@ -423,6 +512,8 @@ project venv. The fallback keeps the app running, but it hides whether MCP is ac
      `python run_eval.py --label after` -->
 
 **What I changed:**
+
+All my tries were 5/5. I did not change anything.
 
 **Which failure it was meant to fix:**
 
@@ -470,7 +561,7 @@ project venv. The fallback keeps the app running, but it hides whether MCP is ac
            (or a written record of exactly where the rewire broke)
        [x] Run Log — Before, five criteria, five tries each
        [x] Real output pasted underneath, naming file and function
-       [ ] A verdict on every criterion
+       [x] A verdict on every criterion
        [ ] A diagnosis for every miss, naming a place AND a mechanism
        [x] Loop Trace, with the MCP call visible in it
        [ ] All three failure modes triggered and handled
@@ -486,3 +577,7 @@ project venv. The fallback keeps the app running, but it hides whether MCP is ac
 ---
 
 📖 **How to run this project: [RUNNING.md](RUNNING.md)**
+
+```
+
+```
