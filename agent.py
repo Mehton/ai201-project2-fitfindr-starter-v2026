@@ -132,31 +132,8 @@ def run_agent(query: str, wardrobe: dict) -> dict:
     parsed = parse_query(query)
     session = new_session(query, wardrobe)
     steps = 0
-    # results = _search(parsed)
 
-    # session["parsed"] = parsed
-    # trace.step("parse_query", inputs=query, returned=str(parsed))
-
-    # # session["search_results"] = results
-    # # trace.step("search_listings (via MCP)", inputs=str(parsed), returned = results, note= f"{len(results)} match(es)")
-
-    # if not results:
-    #     session["error"] = _nothing_found_message(parsed)
-    #     trace.step("branch", note="search returned []: stopping before suggest_outfit")
-    #     return session
-
-    # session["selected_item"] = results[0]
-    # trace.step("select_item", returned=session["selected_item"])
-
-    # # after suggest_outfit(...)
-    # trace.step("suggest_outfit", inputs=session["selected_item"],
-    #         returned=session["outfit_suggestion"])
-
-    # # after create_fit_card(...)
-    # trace.step("create_fit_card", inputs=session["selected_item"],
-    #         returned=session["fit_card"])
     
-
     # ⚠️ UNIT 4, MILESTONE 2 — everything in the try/except is unit 3 code; the
     # handler around it is what unit 4 adds, so that a bad key produces a
     # sentence rather than a stack trace.
@@ -174,16 +151,16 @@ def run_agent(query: str, wardrobe: dict) -> dict:
             trace.step("branch", note="search returned []: stopping before suggest_outfit")
             return session
     
-        session["selected_item"] = results[0]
-        trace.step("select_item", returned=session["selected_item"])
+        # session["selected_item"] = results[0]
+        # trace.step("select_item", returned=session["selected_item"])
     
-        # after suggest_outfit(...)
-        trace.step("suggest_outfit", inputs=session["selected_item"],
-                returned=session["outfit_suggestion"])
+        # # after suggest_outfit(...)
+        # trace.step("suggest_outfit", inputs=session["selected_item"],
+        #         returned=session["outfit_suggestion"])
     
-        # after create_fit_card(...)
-        trace.step("create_fit_card", inputs=session["selected_item"],
-                returned=session["fit_card"])
+        # # after create_fit_card(...)
+        # trace.step("create_fit_card", inputs=session["selected_item"],
+        #         returned=session["fit_card"])
 
         # ── THE BRANCH ────────────────────────────────────────────────────────
         if not results:
